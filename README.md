@@ -1,40 +1,196 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+## Projeto do Componente Circle
 
-## Getting Started
+Este projeto é uma demonstração simples de um componente React chamado `Circle`, construído usando Next.js. O componente `Circle` exibe um círculo colorido que pode ser clicado para aplicar um efeito de sombra e arrastado pela tela.
 
-First, run the development server:
+### Propósito
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+O propósito deste projeto é aprender e praticar os conceitos básicos de Next.
+
+### Funcionalidades
+
+- **Clique**: Clicar no círculo alterna seu estado entre clicado e não clicado, aplicando ou removendo um efeito de sombra.
+- **Arrastar**: Quando o círculo está no estado clicado, ele pode ser arrastado pela tela.
+
+## Prints
+
+1. **Círculo Inicial**:
+
+   <img src="./public/prints/circle-initial.png" alt="Círculo Inicial" width="300" />
+
+
+2. **Círculo com Efeito de Sombra**:
+
+   <img src="./public/prints/circle-shadow.png" alt="Círculo com Sombra" width="300" />
+
+
+3. **Círculo sendo Arrastado**:
+
+   <img src="./public/prints/circle-drag.png" alt="Círculo sendo Arrastado" width="300" />
+
+
+### Componentes
+
+#### `Circle.jsx`
+
+```jsx
+import React, { useEffect, useRef, useState } from "react"
+
+export default function Circle(props) {
+  const circleRef = useRef(0)
+  const [isDrag, setIsDrag] = useState()
+  const [isClicked, setIsClicked] = useState(false)
+  const [effect, setEffect] = useState({})
+
+  useEffect(() => {
+    const hexColor = props.color
+
+    const style = {
+      backgroundColor: hexColor,
+      width: "150px",
+      height: "150px",
+      borderRadius: "300px",
+    }
+
+    const styleShadow = {
+      boxShadow: `0px 0px 25px ${hexColor},
+                  0px 0px 60px ${hexColor},
+                  0px 0px 95px ${hexColor},
+                  0px 0px 100px ${hexColor}`,
+    }
+
+    setEffect(isClicked ? { ...style, ...styleShadow } : style)
+  }, [props.color, isClicked])
+
+  useEffect(() => {
+    const circle = circleRef.current
+
+    const onClickMouse = () => {
+      setIsClicked((prevClick) => !prevClick)
+    }
+
+    const onMouseDown = () => {
+      if (isClicked) {
+        setIsDrag(true)
+      }
+    }
+
+    const onMouseUp = () => {
+      setIsDrag(false)
+    }
+
+    const onMouseMove = (e) => {
+      if (isDrag) {
+        console.log("isDrag")
+        const mouseX = e.clientX
+        const mouseY = e.clientY
+
+        const circleX = circle.offsetLeft + circle.offsetWidth / 2
+        const circleY = circle.offsetTop + circle.offsetHeight / 2
+
+        const deltaX = mouseX - circleX
+        const deltaY = mouseY - circleY
+
+        circle.style.transform = `translate(${deltaX}px, ${deltaY}px)`
+      }
+    }
+
+    circle.addEventListener("mousedown", onMouseDown)
+    circle.addEventListener("mouseup", onMouseUp)
+    circle.addEventListener("mousemove", onMouseMove)
+    circle.addEventListener("click", onClickMouse)
+
+    return () => {
+      circle.removeEventListener("mousedown", onMouseDown)
+      circle.removeEventListener("mouseup", onMouseUp)
+      circle.removeEventListener("mousemove", onMouseMove)
+      circle.removeEventListener("click", onClickMouse)
+    }
+  }, [isDrag, isClicked])
+
+  return (
+    <div
+      id="circle"
+      ref={circleRef}
+      style={{ backgroundColor: "#FFF" }}
+      {...(effect && { style: effect })}
+    ></div>
+  )
+} 
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### `index.jsx`
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+```jsx
+import Circle from "@/components/Circle"
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+export default function Home() {
+  return (
+    <div className="container">
+      <Circle color={"#0FFFFF"} />
+      <Circle color={"#770707"} />
+      <Circle color={"#FFD988"} />
+      <Circle color={"#ECDDDD"} />
+      <Circle color={"#39FF14"} />
+      <Circle color={"#FFD700"} />
+    </div>
+  )
+}
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+### `global.css`
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```css
 
-## Learn More
+* {
+  padding: 0;
+  margin: 0;
+}
 
-To learn more about Next.js, take a look at the following resources:
+html {
+  background-color: #222222;
+}
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+body {
+  display:flex;
+  flex-direction: column;
+  background-color: #000000;
+}
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+.container {
+  display: grid;
+  height: 100vh;
+  grid-template-columns: auto auto auto;
+  align-items: center;
+  place-content: center;
+  column-gap: 100px;
+  row-gap: 100px;
+}
 
-## Deploy on Vercel
+a {
+  color: inherit;
+  text-decoration: none;
+}
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Uso
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Para usar o componente `Circle` em sua aplicação Next.js, importe-o e passe uma prop color com o valor hexadecimal da cor desejada.
+
+### `index.jsx`
+
+```jsx
+import Circle from "@/components/Circle"
+
+export default function Home() {
+  return (
+    <div className="container">
+      <Circle color={"#0FFFFF"} />
+      <Circle color={"#770707"} />
+      <Circle color={"#FFD988"} />
+      <Circle color={"#ECDDDD"} />
+      <Circle color={"#39FF14"} />
+      <Circle color={"#FFD700"} />
+    </div>
+  )
+}
+```
